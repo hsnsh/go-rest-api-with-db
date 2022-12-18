@@ -22,10 +22,10 @@ func NewProductController() productController {
 
 func (c productController) InitializeRoutes(Router *mux.Router) {
 	Router.HandleFunc("/api/products", c.getAllProducts).Methods("GET")
-	Router.HandleFunc("/api/product/{id}", c.getProductById).Methods("GET")
-	Router.HandleFunc("/api/product", c.createProduct).Methods("POST")
-	Router.HandleFunc("/api/product/{id}", c.updateProduct).Methods("PUT")
-	Router.HandleFunc("/api/product/{id}", c.deleteProduct).Methods("DELETE")
+	Router.HandleFunc("/api/products/{id}", c.getProductById).Methods("GET")
+	Router.HandleFunc("/api/products", c.createProduct).Methods("POST")
+	Router.HandleFunc("/api/products/{id}", c.updateProduct).Methods("PUT")
+	Router.HandleFunc("/api/products/{id}", c.deleteProduct).Methods("DELETE")
 }
 
 func (c productController) getAllProducts(w http.ResponseWriter, r *http.Request) {
