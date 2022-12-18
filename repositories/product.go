@@ -40,28 +40,27 @@ func (p productRepository) GetById(id string) Product {
 
 func (p productRepository) Add(input Product) Product {
 
-	createdId := input.ID
-	if createdId == uuid.Nil {
-		createdId = uuid.New()
+	if input.ID == uuid.Nil {
+		input.ID = uuid.New()
 	}
 	input.CreatedAt = time.Now()
 	input.UpdatedAt = time.Time{}
 
 	// Add store entity to store
-	p.productStore[createdId.String()] = input
+	p.productStore[input.ID.String()] = input
 
 	return input
 }
 
 func (p productRepository) Update(input Product) Product {
-	updatedId := input.ID
-	_, exist := p.productStore[updatedId.String()]
+	id := input.ID.String()
+	_, exist := p.productStore[id]
 	if !exist {
-		panic(updatedId.String() + " not found")
+		panic(id + " not found")
 	}
 	input.UpdatedAt = time.Now()
 
-	p.productStore[updatedId.String()] = input
+	p.productStore[id] = input
 
 	return input
 }

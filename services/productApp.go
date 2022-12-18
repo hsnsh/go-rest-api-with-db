@@ -51,8 +51,9 @@ func (pc productAppService) CreateProduct(input ProductCreateDto) (ProductDto, e
 func (pc productAppService) UpdateProduct(id uuid.UUID, input ProductUpdateDto) (ProductDto, error) {
 
 	updatedProduct := pc._productRepository.Update(Product{
-		Name:  input.Name,
-		Price: input.Price,
+		BaseEntity: BaseEntity{ID: id},
+		Name:       input.Name,
+		Price:      input.Price,
 	})
 
 	return entityToDto(updatedProduct), nil
