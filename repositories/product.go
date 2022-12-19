@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"github.com/google/uuid"
 	. "go-rest-api-with-db/domain"
 	"strconv"
@@ -8,37 +9,37 @@ import (
 )
 
 type IProductRepository interface {
-	GetList() []Product
-	GetById(id string) Product
-	Add(input Product) Product
-	Update(input Product) Product
-	Delete(id string)
+	GetList() ([]Product, error)
+	GetById(id string) (Product, error)
+	Add(input *Product) error
+	Update(input *Product) error
+	Delete(id string) error
 }
 
 type productRepository struct {
 	productStore map[string]Product
 }
 
-func (p productRepository) GetList() []Product {
+func (p *productRepository) GetList() ([]Product, error) {
 
 	var products []Product
 	for _, v := range p.productStore {
 		products = append(products, v)
 	}
 
-	return products
+	return products, nil
 }
 
-func (p productRepository) GetById(id string) Product {
+func (p *productRepository) GetById(id string) (Product, error) {
 	productEntity, exist := p.productStore[id]
 	if !exist {
-		panic(id + " not found")
+		return Product{}, errors.New(id + " not found")
 	}
 
-	return productEntity
+	return productEntity, nil
 }
 
-func (p productRepository) Add(input Product) Product {
+func (p *productRepository) Add(input *Product) error {
 
 	if input.ID == uuid.Nil {
 		input.ID = uuid.New()
@@ -47,38 +48,40 @@ func (p productRepository) Add(input Product) Product {
 	input.UpdatedAt = time.Time{}
 
 	// Add store entity to store
-	p.productStore[input.ID.String()] = input
+	p.productStore[input.ID.String()] = *input
 
-	return input
+	return nil
 }
 
-func (p productRepository) Update(input Product) Product {
+func (p *productRepository) Update(input *Product) error {
 	id := input.ID.String()
 	_, exist := p.productStore[id]
 	if !exist {
-		panic(id + " not found")
+		return errors.New(id + " not found")
 	}
 	input.UpdatedAt = time.Now()
 
-	p.productStore[id] = input
+	p.productStore[id] = *input
 
-	return input
+	return nil
 }
 
-func (p productRepository) Delete(id string) {
+func (p *productRepository) Delete(id string) error {
 	_, exist := p.productStore[id]
 	if !exist {
-		panic(id + " not found")
+		return errors.New(id + " not found")
 	}
 
 	delete(p.productStore, id)
+
+	return nil
 }
 
 func NewProductRepository() IProductRepository {
 
-	instance := productRepository{}
-	instance.productStore = make(map[string]Product)
+	instance := productRepository{productStore: make(map[string]Product)}
 
+	// insert fake data
 	for i := 0; i < 10; i++ {
 		id := uuid.New()
 		instance.productStore[id.String()] = Product{
@@ -92,5 +95,5 @@ func NewProductRepository() IProductRepository {
 		}
 	}
 
-	return instance
+	return &instance
 }

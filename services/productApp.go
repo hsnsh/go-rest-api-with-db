@@ -19,9 +19,12 @@ type productAppService struct {
 	_productRepository IProductRepository
 }
 
-func (pc productAppService) GetProductList() ([]ProductDto, error) {
+func (pc *productAppService) GetProductList() ([]ProductDto, error) {
 
-	products := pc._productRepository.GetList()
+	products, err := pc._productRepository.GetList()
+	if err != nil {
+		return nil, err
+	}
 
 	var productDtos []ProductDto
 	for _, product := range products {
@@ -31,37 +34,53 @@ func (pc productAppService) GetProductList() ([]ProductDto, error) {
 	return productDtos, nil
 }
 
-func (pc productAppService) GetProductById(id uuid.UUID) (ProductDto, error) {
+func (pc *productAppService) GetProductById(id uuid.UUID) (ProductDto, error) {
 
-	product := pc._productRepository.GetById(id.String())
+	product, err := pc._productRepository.GetById(id.String())
+	if err != nil {
+		return ProductDto{}, err
+	}
 
 	return entityToDto(product), nil
 }
 
-func (pc productAppService) CreateProduct(input ProductCreateDto) (ProductDto, error) {
+func (pc *productAppService) CreateProduct(input ProductCreateDto) (ProductDto, error) {
 
-	createdProduct := pc._productRepository.Add(Product{
+	createdProduct := Product{
 		Name:  input.Name,
 		Price: input.Price,
-	})
+	}
+
+	err := pc._productRepository.Add(&createdProduct)
+	if err != nil {
+		return ProductDto{}, err
+	}
 
 	return entityToDto(createdProduct), nil
 }
 
-func (pc productAppService) UpdateProduct(id uuid.UUID, input ProductUpdateDto) (ProductDto, error) {
+func (pc *productAppService) UpdateProduct(id uuid.UUID, input ProductUpdateDto) (ProductDto, error) {
 
-	updatedProduct := pc._productRepository.Update(Product{
+	updatedProduct := Product{
 		BaseEntity: BaseEntity{ID: id},
 		Name:       input.Name,
 		Price:      input.Price,
-	})
+	}
+
+	err := pc._productRepository.Update(&updatedProduct)
+	if err != nil {
+		return ProductDto{}, err
+	}
 
 	return entityToDto(updatedProduct), nil
 }
 
-func (pc productAppService) DeleteProduct(id uuid.UUID) error {
+func (pc *productAppService) DeleteProduct(id uuid.UUID) error {
 
-	pc._productRepository.Delete(id.String())
+	err := pc._productRepository.Delete(id.String())
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -79,5 +98,5 @@ func entityToDto(product Product) ProductDto {
 }
 
 func NewProductAppService() IProductAppService {
-	return productAppService{_productRepository: NewProductRepository()}
+	return &productAppService{_productRepository: NewProductRepository()}
 }

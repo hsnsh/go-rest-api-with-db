@@ -54,7 +54,7 @@ func (c productController) getProductById(w http.ResponseWriter, r *http.Request
 	searchId, err := uuid.Parse(key)
 	if err != nil {
 		fmt.Println(err.Error())
-		RespondWithError(w, http.StatusBadRequest, err.Error())
+		RespondWithError(w, http.StatusBadRequest, "Invalid product ID")
 		return
 	}
 
@@ -102,7 +102,7 @@ func (c productController) updateProduct(w http.ResponseWriter, r *http.Request)
 	key := variables["id"]
 
 	// Check ID Parameter is valid
-	searchId, errParse := uuid.Parse(key)
+	updateId, errParse := uuid.Parse(key)
 	if errParse != nil {
 		fmt.Println(errParse.Error())
 		RespondWithError(w, http.StatusBadRequest, errParse.Error())
@@ -119,7 +119,7 @@ func (c productController) updateProduct(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Update on the Store
-	product, errUpdate := c._productAppService.UpdateProduct(searchId, productUpdateDto)
+	product, errUpdate := c._productAppService.UpdateProduct(updateId, productUpdateDto)
 	if errUpdate != nil {
 		fmt.Println(errUpdate.Error())
 		RespondWithError(w, http.StatusBadRequest, errUpdate.Error())
@@ -150,7 +150,7 @@ func (c productController) deleteProduct(w http.ResponseWriter, r *http.Request)
 	errDelete := c._productAppService.DeleteProduct(searchId)
 	if errDelete != nil {
 		fmt.Println(errDelete.Error())
-		RespondWithError(w, http.StatusNotFound, errDelete.Error())
+		RespondWithError(w, http.StatusBadRequest, errDelete.Error())
 		return
 	}
 
