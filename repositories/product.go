@@ -17,14 +17,14 @@ type IProductRepository interface {
 }
 
 type productRepository struct {
-	productStore map[string]Product
+	productStore map[string]*Product
 }
 
 func (p *productRepository) GetList() ([]Product, error) {
 
 	var products []Product
 	for _, v := range p.productStore {
-		products = append(products, v)
+		products = append(products, *v)
 	}
 
 	return products, nil
@@ -36,32 +36,33 @@ func (p *productRepository) GetById(id string) (Product, error) {
 		return Product{}, errors.New(id + " not found")
 	}
 
-	return productEntity, nil
+	return *productEntity, nil
 }
 
 func (p *productRepository) Add(input *Product) error {
 
-	if input.ID == uuid.Nil {
-		input.ID = uuid.New()
+	if _, err := uuid.Parse(input.ID); err != nil {
+		input.ID = uuid.New().String()
 	}
+
 	input.CreatedAt = time.Now()
 	input.UpdatedAt = time.Time{}
 
 	// Add store entity to store
-	p.productStore[input.ID.String()] = *input
+	p.productStore[input.ID] = input
 
 	return nil
 }
 
 func (p *productRepository) Update(input *Product) error {
-	id := input.ID.String()
+	id := input.ID
 	_, exist := p.productStore[id]
 	if !exist {
 		return errors.New(id + " not found")
 	}
 	input.UpdatedAt = time.Now()
 
-	p.productStore[id] = *input
+	p.productStore[id] = input
 
 	return nil
 }
@@ -79,12 +80,12 @@ func (p *productRepository) Delete(id string) error {
 
 func NewProductRepository() IProductRepository {
 
-	instance := productRepository{productStore: make(map[string]Product)}
+	instance := productRepository{productStore: map[string]*Product{}}
 
 	// insert fake data
 	for i := 0; i < 10; i++ {
-		id := uuid.New()
-		instance.productStore[id.String()] = Product{
+		id := uuid.New().String()
+		instance.productStore[id] = &Product{
 			BaseEntity: BaseEntity{
 				ID:        id,
 				UpdatedAt: time.Now(),

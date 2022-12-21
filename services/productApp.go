@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	. "go-rest-api-with-db/domain"
 	. "go-rest-api-with-db/dtos"
+	. "go-rest-api-with-db/helpers"
 	. "go-rest-api-with-db/repositories"
 )
 
@@ -16,12 +17,13 @@ type IProductAppService interface {
 }
 
 type productAppService struct {
-	_productRepository IProductRepository
+	_logger IFileLogger
+	_dao    DAO
 }
 
 func (pc *productAppService) GetProductList() ([]ProductDto, error) {
 
-	products, err := pc._productRepository.GetList()
+	products, err := pc._dao.NewProductRepository().GetList()
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +38,7 @@ func (pc *productAppService) GetProductList() ([]ProductDto, error) {
 
 func (pc *productAppService) GetProductById(id uuid.UUID) (ProductDto, error) {
 
-	product, err := pc._productRepository.GetById(id.String())
+	product, err := pc._dao.NewProductRepository().GetById(id.String())
 	if err != nil {
 		return ProductDto{}, err
 	}
@@ -51,7 +53,7 @@ func (pc *productAppService) CreateProduct(input ProductCreateDto) (ProductDto, 
 		Price: input.Price,
 	}
 
-	err := pc._productRepository.Add(&createdProduct)
+	err := pc._dao.NewProductRepository().Add(&createdProduct)
 	if err != nil {
 		return ProductDto{}, err
 	}
@@ -62,12 +64,12 @@ func (pc *productAppService) CreateProduct(input ProductCreateDto) (ProductDto, 
 func (pc *productAppService) UpdateProduct(id uuid.UUID, input ProductUpdateDto) (ProductDto, error) {
 
 	updatedProduct := Product{
-		BaseEntity: BaseEntity{ID: id},
+		BaseEntity: BaseEntity{ID: id.String()},
 		Name:       input.Name,
 		Price:      input.Price,
 	}
 
-	err := pc._productRepository.Update(&updatedProduct)
+	err := pc._dao.NewProductRepository().Update(&updatedProduct)
 	if err != nil {
 		return ProductDto{}, err
 	}
@@ -77,7 +79,7 @@ func (pc *productAppService) UpdateProduct(id uuid.UUID, input ProductUpdateDto)
 
 func (pc *productAppService) DeleteProduct(id uuid.UUID) error {
 
-	err := pc._productRepository.Delete(id.String())
+	err := pc._dao.NewProductRepository().Delete(id.String())
 	if err != nil {
 		return err
 	}
@@ -97,6 +99,9 @@ func entityToDto(product Product) ProductDto {
 	}
 }
 
-func NewProductAppService() IProductAppService {
-	return &productAppService{_productRepository: NewProductRepository()}
+func NewProductAppService(logger IFileLogger, dao DAO) IProductAppService {
+	return &productAppService{
+		_logger: logger,
+		_dao:    dao,
+	}
 }

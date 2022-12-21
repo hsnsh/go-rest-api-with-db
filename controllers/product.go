@@ -13,11 +13,15 @@ import (
 )
 
 type productController struct {
+	_logger            IFileLogger
 	_productAppService IProductAppService
 }
 
-func NewProductController() productController {
-	return productController{_productAppService: NewProductAppService()}
+func NewProductController(logger IFileLogger, productAppService IProductAppService) IBaseController {
+	return &productController{
+		_logger:            logger,
+		_productAppService: productAppService,
+	}
 }
 
 func (c productController) InitializeRoutes(Router *mux.Router) {
@@ -29,7 +33,7 @@ func (c productController) InitializeRoutes(Router *mux.Router) {
 }
 
 func (c productController) getAllProducts(w http.ResponseWriter, r *http.Request) {
-	defer handlePanicAndRecovery(w)
+	defer HandlePanicAndRecovery(w)
 
 	products, errResult := c._productAppService.GetProductList()
 	if errResult != nil {
@@ -42,7 +46,7 @@ func (c productController) getAllProducts(w http.ResponseWriter, r *http.Request
 }
 
 func (c productController) getProductById(w http.ResponseWriter, r *http.Request) {
-	defer handlePanicAndRecovery(w)
+	defer HandlePanicAndRecovery(w)
 
 	// Get variables from request url
 	variables := mux.Vars(r)
@@ -70,7 +74,7 @@ func (c productController) getProductById(w http.ResponseWriter, r *http.Request
 }
 
 func (c productController) createProduct(w http.ResponseWriter, r *http.Request) {
-	defer handlePanicAndRecovery(w)
+	defer HandlePanicAndRecovery(w)
 
 	// Get create dto from request body
 	var productCreateDto ProductCreateDto
@@ -93,7 +97,7 @@ func (c productController) createProduct(w http.ResponseWriter, r *http.Request)
 }
 
 func (c productController) updateProduct(w http.ResponseWriter, r *http.Request) {
-	defer handlePanicAndRecovery(w)
+	defer HandlePanicAndRecovery(w)
 
 	// Get variables from request url
 	variables := mux.Vars(r)
@@ -130,7 +134,7 @@ func (c productController) updateProduct(w http.ResponseWriter, r *http.Request)
 }
 
 func (c productController) deleteProduct(w http.ResponseWriter, r *http.Request) {
-	defer handlePanicAndRecovery(w)
+	defer HandlePanicAndRecovery(w)
 
 	// Get variables from request url
 	variables := mux.Vars(r)
@@ -155,10 +159,4 @@ func (c productController) deleteProduct(w http.ResponseWriter, r *http.Request)
 	}
 
 	RespondWithJSON(w, http.StatusOK, "Delete operation is successfully completed")
-}
-
-func handlePanicAndRecovery(w http.ResponseWriter) {
-	if r := recover(); r != nil {
-		RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("%s", r))
-	}
 }

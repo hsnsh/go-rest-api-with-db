@@ -2,20 +2,22 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"github.com/joho/godotenv"
 	"os"
 	"strings"
 
-	"github.com/joho/godotenv"
+	. "go-rest-api-with-db/helpers"
 )
+
+var appLogger IFileLogger
 
 func init() {
 
-	err := godotenv.Load() // The Original .env
+	appLogger = NewFileLogger()
 
+	err := godotenv.Load() // The Original .env
 	if err != nil {
-		log.Fatal("Error loading .env file")
-		panic(err.Error())
+		appLogger.Fatal("Error loading .env file")
 	}
 
 	env := os.Getenv("APP_ENV")
@@ -25,8 +27,7 @@ func init() {
 
 	godotenv.Load(".env." + env)
 	if err != nil {
-		log.Fatal("Error loading .env." + env + " file")
-		panic(err.Error())
+		appLogger.Fatal("Error loading .env." + env + " file")
 	}
 
 	if os.Getenv("APP_ENV") != "prod" {
@@ -34,7 +35,7 @@ func init() {
 		for _, e := range os.Environ() {
 			pair := strings.SplitN(e, "=", 2)
 			if strings.HasPrefix(pair[0], "APP_") {
-				fmt.Printf("%s: %s\n", pair[0], pair[1])
+				appLogger.Info(fmt.Sprintf("%s: %s", pair[0], pair[1]))
 			}
 		}
 	}
@@ -42,6 +43,6 @@ func init() {
 
 func main() {
 	a := App{}
-	a.Initialize()
-	a.Run(":" + os.Getenv("APP_HOST_PORT"))
+	a.Initialize(os.Getenv("APP_DB_CONNECTION"))
+	a.Run(fmt.Sprintf("%s:%s", os.Getenv("APP_HOST_ADDRESS"), os.Getenv("APP_HOST_PORT")))
 }
