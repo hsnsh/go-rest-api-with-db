@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/HsnCorp/go-hsn-library/logger"
 	"github.com/gorilla/mux"
 	"net/http"
 
@@ -8,10 +9,10 @@ import (
 )
 
 type bookController struct {
-	_logger IFileLogger
+	_logger logger.IFileLogger
 }
 
-func NewBookController(logger IFileLogger) IBaseController {
+func NewBookController(logger logger.IFileLogger) IBaseController {
 	return &bookController{
 		_logger: logger,
 	}

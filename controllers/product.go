@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/HsnCorp/go-hsn-library/logger"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -13,11 +14,11 @@ import (
 )
 
 type productController struct {
-	_logger            IFileLogger
+	_logger            logger.IFileLogger
 	_productAppService IProductAppService
 }
 
-func NewProductController(logger IFileLogger, productAppService IProductAppService) IBaseController {
+func NewProductController(logger logger.IFileLogger, productAppService IProductAppService) IBaseController {
 	return &productController{
 		_logger:            logger,
 		_productAppService: productAppService,

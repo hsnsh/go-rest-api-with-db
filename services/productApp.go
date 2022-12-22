@@ -1,10 +1,10 @@
 package services
 
 import (
+	"github.com/HsnCorp/go-hsn-library/logger"
 	"github.com/google/uuid"
 	. "go-rest-api-with-db/domain"
 	. "go-rest-api-with-db/dtos"
-	. "go-rest-api-with-db/helpers"
 	. "go-rest-api-with-db/repositories"
 )
 
@@ -17,7 +17,7 @@ type IProductAppService interface {
 }
 
 type productAppService struct {
-	_logger IFileLogger
+	_logger logger.IFileLogger
 	_dao    DAO
 }
 
@@ -99,7 +99,7 @@ func entityToDto(product Product) ProductDto {
 	}
 }
 
-func NewProductAppService(logger IFileLogger, dao DAO) IProductAppService {
+func NewProductAppService(logger logger.IFileLogger, dao DAO) IProductAppService {
 	return &productAppService{
 		_logger: logger,
 		_dao:    dao,

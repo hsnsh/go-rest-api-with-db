@@ -2,18 +2,17 @@ package main
 
 import (
 	"fmt"
+	"github.com/HsnCorp/go-hsn-library/logger"
 	"github.com/joho/godotenv"
 	"os"
 	"strings"
-
-	. "go-rest-api-with-db/helpers"
 )
 
-var appLogger IFileLogger
+var appLogger logger.IFileLogger
 
 func init() {
 
-	appLogger = NewFileLogger()
+	appLogger = logger.NewFileLogger()
 
 	err := godotenv.Load() // The Original .env
 	if err != nil {
