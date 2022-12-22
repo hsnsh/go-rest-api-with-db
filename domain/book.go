@@ -1,9 +1,11 @@
 package domain
 
-import "gorm.io/gorm"
+import "go-rest-api-with-db/domain/base"
+
+const BookTableName = "books"
 
 type Book struct {
-	gorm.Model
+	base.AuditEntity
 	Code  string
 	Price uint
 }

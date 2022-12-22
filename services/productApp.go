@@ -2,7 +2,7 @@ package services
 
 import (
 	"github.com/HsnCorp/go-hsn-library/logger"
-	"github.com/google/uuid"
+	"github.com/satori/go.uuid"
 	. "go-rest-api-with-db/domain"
 	. "go-rest-api-with-db/dtos"
 	. "go-rest-api-with-db/repositories"
@@ -64,9 +64,9 @@ func (pc *productAppService) CreateProduct(input ProductCreateDto) (ProductDto, 
 func (pc *productAppService) UpdateProduct(id uuid.UUID, input ProductUpdateDto) (ProductDto, error) {
 
 	updatedProduct := Product{
-		BaseEntity: BaseEntity{ID: id.String()},
-		Name:       input.Name,
-		Price:      input.Price,
+		//BaseEntityWithSoftDeletion: BaseEntityWithSoftDeletion{ID: id},
+		Name:  input.Name,
+		Price: input.Price,
 	}
 
 	err := pc._dao.NewProductRepository().Update(&updatedProduct)
@@ -90,9 +90,9 @@ func (pc *productAppService) DeleteProduct(id uuid.UUID) error {
 func entityToDto(product Product) ProductDto {
 	return ProductDto{
 		BaseDto: BaseDto{
-			ID:           product.ID,
-			CreationTime: product.CreatedAt,
-			UpdateTime:   product.UpdatedAt,
+			ID:           product.ID.String(),
+			CreationTime: product.CreationTime,
+			UpdateTime:   product.ModificationTime,
 		},
 		Name:  product.Name,
 		Price: product.Price,

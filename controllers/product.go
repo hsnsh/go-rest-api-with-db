@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/HsnCorp/go-hsn-library/logger"
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/satori/go.uuid"
 	"net/http"
 
 	. "go-rest-api-with-db/dtos"
@@ -56,7 +56,7 @@ func (c productController) getProductById(w http.ResponseWriter, r *http.Request
 	key := variables["id"]
 
 	// Check ID Parameter is valid
-	searchId, err := uuid.Parse(key)
+	searchId, err := uuid.FromString(key)
 	if err != nil {
 		fmt.Println(err.Error())
 		RespondWithError(w, http.StatusBadRequest, "Invalid product ID")
@@ -107,7 +107,7 @@ func (c productController) updateProduct(w http.ResponseWriter, r *http.Request)
 	key := variables["id"]
 
 	// Check ID Parameter is valid
-	updateId, errParse := uuid.Parse(key)
+	updateId, errParse := uuid.FromString(key)
 	if errParse != nil {
 		fmt.Println(errParse.Error())
 		RespondWithError(w, http.StatusBadRequest, errParse.Error())
@@ -144,7 +144,7 @@ func (c productController) deleteProduct(w http.ResponseWriter, r *http.Request)
 	key := variables["id"]
 
 	// Check ID Parameter is valid
-	searchId, errParse := uuid.Parse(key)
+	searchId, errParse := uuid.FromString(key)
 	if errParse != nil {
 		fmt.Println(errParse.Error())
 		RespondWithError(w, http.StatusBadRequest, errParse.Error())
