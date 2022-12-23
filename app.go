@@ -8,7 +8,7 @@ import (
 	. "go-rest-api-with-db/helpers"
 	r "go-rest-api-with-db/repositories"
 	s "go-rest-api-with-db/services"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"log"
@@ -79,10 +79,10 @@ func (a *App) initializeDatabase(dsn string) {
 		),
 	}
 
-	dsn = "data/test.db" // "file::memory:?cache=shared"
-	db, conErr := gorm.Open(sqlite.Open(dsn), &gormConfig)
+	//dsn = "data/test.db" // "file::memory:?cache=shared"
+	//db, conErr := gorm.Open(sqlite.Open(dsn), &gormConfig)
 
-	//db, conErr := gorm.Open(postgres.Open(dsn), &gormConfig)
+	db, conErr := gorm.Open(postgres.Open(dsn), &gormConfig)
 	if conErr != nil {
 		appLogger.Fatal(conErr.Error())
 	} else {
@@ -91,10 +91,16 @@ func (a *App) initializeDatabase(dsn string) {
 
 	// Migrate the schema
 	var models []interface{}
-	models = append(models, &d.Book{})
 	models = append(models, &d.Product{})
 	models = append(models, &d.ProductLanguage{})
 	models = append(models, &d.CategoryType{})
+
+	models = append(models, &d.Book{})
+	models = append(models, &d.BookContent{})
+	models = append(models, &d.BookFile{})
+	models = append(models, &d.Author{})
+	models = append(models, &d.Publisher{})
+	models = append(models, &d.PublisherBook{})
 
 	if err := db.AutoMigrate(models...); err != nil {
 		appLogger.Fatal(err.Error())

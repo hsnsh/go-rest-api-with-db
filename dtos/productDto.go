@@ -1,7 +1,9 @@
 package dtos
 
+import "go-rest-api-with-db/dtos/base"
+
 type ProductDto struct {
-	BaseDto
+	base.FullAuditDto
 	Name  string  `json:"name"`
 	Price float32 `json:"price"`
 }
