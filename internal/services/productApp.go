@@ -5,7 +5,7 @@ import (
 	"github.com/satori/go.uuid"
 	. "go-rest-api-with-db/internal/domain"
 	. "go-rest-api-with-db/internal/dtos"
-	base2 "go-rest-api-with-db/internal/dtos/base"
+	. "go-rest-api-with-db/internal/dtos/base"
 	. "go-rest-api-with-db/internal/repositories"
 )
 
@@ -90,9 +90,9 @@ func (pc *productAppService) DeleteProduct(id uuid.UUID) error {
 
 func entityToDto(product Product) ProductDto {
 	return ProductDto{
-		FullAuditDto: base2.FullAuditDto{
-			AuditDto: base2.AuditDto{
-				Dto:              base2.Dto{ID: product.ID.String()},
+		FullAuditDto: FullAuditDto{
+			AuditDto: AuditDto{
+				Dto:              Dto{ID: product.ID.String()},
 				CreationTime:     product.CreationTime,
 				ModificationTime: product.ModificationTime,
 			},
