@@ -6,37 +6,34 @@ import (
 	"github.com/HsnCorp/go-hsn-library/logger"
 	"github.com/gorilla/mux"
 	"github.com/satori/go.uuid"
+	. "go-rest-api-with-db/internal/dtos"
+	. "go-rest-api-with-db/internal/helpers"
+	. "go-rest-api-with-db/internal/services"
 	"net/http"
-
-	. "go-rest-api-with-db/dtos"
-	. "go-rest-api-with-db/helpers"
-	. "go-rest-api-with-db/services"
 )
 
 type productController struct {
-	_logger            logger.IFileLogger
-	_productAppService IProductAppService
+	logger         logger.IFileLogger
+	router         *mux.Router
+	productService IProductAppService
 }
 
-func NewProductController(logger logger.IFileLogger, productAppService IProductAppService) IBaseController {
-	return &productController{
-		_logger:            logger,
-		_productAppService: productAppService,
-	}
+func RegisterProductController(appLogger logger.IFileLogger, appRouter *mux.Router, productAppService IProductAppService) {
+	productController{logger: appLogger, router: appRouter, productService: productAppService}.initializeRoutes()
 }
 
-func (c productController) InitializeRoutes(Router *mux.Router) {
-	Router.HandleFunc("/api/products", c.getAllProducts).Methods("GET")
-	Router.HandleFunc("/api/products/{id}", c.getProductById).Methods("GET")
-	Router.HandleFunc("/api/products", c.createProduct).Methods("POST")
-	Router.HandleFunc("/api/products/{id}", c.updateProduct).Methods("PUT")
-	Router.HandleFunc("/api/products/{id}", c.deleteProduct).Methods("DELETE")
+func (c productController) initializeRoutes() {
+	c.router.HandleFunc("/api/products", c.getAllProducts).Methods("GET")
+	c.router.HandleFunc("/api/products/{id}", c.getProductById).Methods("GET")
+	c.router.HandleFunc("/api/products", c.createProduct).Methods("POST")
+	c.router.HandleFunc("/api/products/{id}", c.updateProduct).Methods("PUT")
+	c.router.HandleFunc("/api/products/{id}", c.deleteProduct).Methods("DELETE")
 }
 
 func (c productController) getAllProducts(w http.ResponseWriter, r *http.Request) {
 	defer HandlePanicAndRecovery(w)
 
-	products, errResult := c._productAppService.GetProductList()
+	products, errResult := c.productService.GetProductList()
 	if errResult != nil {
 		fmt.Println(errResult.Error())
 		RespondWithError(w, http.StatusInternalServerError, errResult.Error())
@@ -64,7 +61,7 @@ func (c productController) getProductById(w http.ResponseWriter, r *http.Request
 	}
 
 	// Get from on the Store
-	product, errResult := c._productAppService.GetProductById(searchId)
+	product, errResult := c.productService.GetProductById(searchId)
 	if errResult != nil {
 		fmt.Println(errResult.Error())
 		RespondWithError(w, http.StatusNotFound, errResult.Error())
@@ -87,7 +84,7 @@ func (c productController) createProduct(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Create on the store
-	product, errCreate := c._productAppService.CreateProduct(productCreateDto)
+	product, errCreate := c.productService.CreateProduct(productCreateDto)
 	if errCreate != nil {
 		fmt.Println(errCreate.Error())
 		RespondWithError(w, http.StatusBadRequest, errCreate.Error())
@@ -124,7 +121,7 @@ func (c productController) updateProduct(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Update on the Store
-	product, errUpdate := c._productAppService.UpdateProduct(updateId, productUpdateDto)
+	product, errUpdate := c.productService.UpdateProduct(updateId, productUpdateDto)
 	if errUpdate != nil {
 		fmt.Println(errUpdate.Error())
 		RespondWithError(w, http.StatusBadRequest, errUpdate.Error())
@@ -152,7 +149,7 @@ func (c productController) deleteProduct(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Delete on the Store
-	errDelete := c._productAppService.DeleteProduct(searchId)
+	errDelete := c.productService.DeleteProduct(searchId)
 	if errDelete != nil {
 		fmt.Println(errDelete.Error())
 		RespondWithError(w, http.StatusBadRequest, errDelete.Error())

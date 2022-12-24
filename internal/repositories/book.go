@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	. "go-rest-api-with-db/domain"
+	. "go-rest-api-with-db/internal/domain"
 	"gorm.io/gorm"
 )
 

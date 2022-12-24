@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"go-rest-api-with-db/domain/base"
+	"go-rest-api-with-db/internal/domain/base"
 )
 
 const AuthorTableName = "authors"

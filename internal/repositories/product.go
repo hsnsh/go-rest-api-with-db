@@ -3,7 +3,7 @@ package repositories
 import (
 	"errors"
 	"github.com/satori/go.uuid"
-	. "go-rest-api-with-db/domain"
+	. "go-rest-api-with-db/internal/domain"
 	"strconv"
 	"time"
 )

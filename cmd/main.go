@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/HsnCorp/go-hsn-library/logger"
 	"github.com/joho/godotenv"
+	"go-rest-api-with-db/internal/app"
 	"os"
 	"strings"
 )
@@ -14,7 +15,8 @@ func init() {
 
 	appLogger = logger.NewFileLogger()
 
-	err := godotenv.Load() // The Original .env
+	var err error
+	err = godotenv.Load() // The Original .env
 	if err != nil {
 		appLogger.Fatal("Error loading .env file")
 	}
@@ -24,7 +26,7 @@ func init() {
 		env = "dev"
 	}
 
-	godotenv.Load(".env." + env)
+	err = godotenv.Load(".env." + env)
 	if err != nil {
 		appLogger.Fatal("Error loading .env." + env + " file")
 	}
@@ -41,7 +43,7 @@ func init() {
 }
 
 func main() {
-	a := App{}
+	a := app.New(appLogger)
 	a.Initialize(os.Getenv("APP_DB_CONNECTION"))
 	a.Run(fmt.Sprintf("%s:%s", os.Getenv("APP_HOST_ADDRESS"), os.Getenv("APP_HOST_PORT")))
 }

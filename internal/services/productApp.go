@@ -3,10 +3,10 @@ package services
 import (
 	"github.com/HsnCorp/go-hsn-library/logger"
 	"github.com/satori/go.uuid"
-	. "go-rest-api-with-db/domain"
-	. "go-rest-api-with-db/dtos"
-	"go-rest-api-with-db/dtos/base"
-	. "go-rest-api-with-db/repositories"
+	. "go-rest-api-with-db/internal/domain"
+	. "go-rest-api-with-db/internal/dtos"
+	base2 "go-rest-api-with-db/internal/dtos/base"
+	. "go-rest-api-with-db/internal/repositories"
 )
 
 type IProductAppService interface {
@@ -90,9 +90,9 @@ func (pc *productAppService) DeleteProduct(id uuid.UUID) error {
 
 func entityToDto(product Product) ProductDto {
 	return ProductDto{
-		FullAuditDto: base.FullAuditDto{
-			AuditDto: base.AuditDto{
-				Dto:              base.Dto{ID: product.ID.String()},
+		FullAuditDto: base2.FullAuditDto{
+			AuditDto: base2.AuditDto{
+				Dto:              base2.Dto{ID: product.ID.String()},
 				CreationTime:     product.CreationTime,
 				ModificationTime: product.ModificationTime,
 			},

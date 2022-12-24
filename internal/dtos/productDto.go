@@ -1,6 +1,8 @@
 package dtos
 
-import "go-rest-api-with-db/dtos/base"
+import (
+	"go-rest-api-with-db/internal/dtos/base"
+)
 
 type ProductDto struct {
 	base.FullAuditDto

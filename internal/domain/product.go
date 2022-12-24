@@ -2,7 +2,7 @@ package domain
 
 import (
 	uuid "github.com/satori/go.uuid"
-	"go-rest-api-with-db/domain/base"
+	"go-rest-api-with-db/internal/domain/base"
 )
 
 const ProductTableName = "products"
