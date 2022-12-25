@@ -5,7 +5,7 @@ import (
 )
 
 type AuthorDto struct {
-	FullAuditDto
+	Base
 	Name string `json:"name"`
 }
 

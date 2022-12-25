@@ -4,7 +4,6 @@ import (
 	. "github.com/HsnCorp/go-hsn-library/logger"
 	. "go-rest-api-with-db/internal/controllers"
 	"go-rest-api-with-db/internal/domain"
-	. "go-rest-api-with-db/internal/helpers"
 	r "go-rest-api-with-db/internal/repositories"
 	s "go-rest-api-with-db/internal/services"
 	"gorm.io/driver/postgres"
@@ -97,10 +96,6 @@ func (a *app) initializeDatabase(dsn string) {
 
 	// Migrate the schema
 	var models []interface{}
-	models = append(models, &domain.Product{})
-	models = append(models, &domain.ProductLanguage{})
-	models = append(models, &domain.CategoryType{})
-
 	models = append(models, &domain.Book{})
 	models = append(models, &domain.BookContent{})
 	models = append(models, &domain.BookFile{})
@@ -118,5 +113,5 @@ func (a *app) initializeDatabase(dsn string) {
 }
 
 func (a *app) handleIndex(w http.ResponseWriter, r *http.Request) {
-	RespondWithJSON(w, http.StatusOK, "Welcome GoLang RestAPI")
+	w.Write([]byte("Welcome GoLang RestAPI"))
 }

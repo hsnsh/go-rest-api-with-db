@@ -33,108 +33,23 @@ func (c authorController) initializeRoutes() {
 }
 
 func (c authorController) getAllAuthors(w http.ResponseWriter, r *http.Request) {
-	defer HandlePanicAndRecovery(w)
+	defer HandlePanicAndRecovery(w, c.logger)
 
 	authors, errResult := c.authorService.GetAuthorList()
 	if errResult != nil {
-		fmt.Println(errResult.Error())
-		RespondWithError(w, http.StatusInternalServerError, errResult.Error())
+		c.logger.Warning(errResult.Error())
+		RespondErrorWithMessage(w, errResult.Error())
 		return
 	}
 
-	RespondWithJSON(w, http.StatusOK, authors)
+	if authors == nil {
+		authors = make([]AuthorDto, 0)
+	}
+	RespondOkWithData(w, authors)
 }
 
 func (c authorController) getAuthorById(w http.ResponseWriter, r *http.Request) {
-	defer HandlePanicAndRecovery(w)
-
-	// Get variables from request url
-	variables := mux.Vars(r)
-
-	// Get ID parameter
-	key := variables["id"]
-
-	// Check ID Parameter is valid
-	searchId, err := uuid.FromString(key)
-	if err != nil {
-		fmt.Println(err.Error())
-		RespondWithError(w, http.StatusBadRequest, "Invalid Author ID")
-		return
-	}
-
-	// Get from on the Store
-	author, errResult := c.authorService.GetAuthorById(searchId)
-	if errResult != nil {
-		fmt.Println(errResult.Error())
-		RespondWithError(w, http.StatusNotFound, errResult.Error())
-		return
-	}
-
-	RespondWithJSON(w, http.StatusOK, author)
-}
-
-func (c authorController) createAuthor(w http.ResponseWriter, r *http.Request) {
-	defer HandlePanicAndRecovery(w)
-
-	// Get create dto from request body
-	var authorCreateDto AuthorCreateDto
-	errDecode := json.NewDecoder(r.Body).Decode(&authorCreateDto)
-	if errDecode != nil {
-		fmt.Println(errDecode.Error())
-		RespondWithError(w, http.StatusBadRequest, errDecode.Error())
-		return
-	}
-
-	// Create on the store
-	author, errCreate := c.authorService.CreateAuthor(authorCreateDto)
-	if errCreate != nil {
-		fmt.Println(errCreate.Error())
-		RespondWithError(w, http.StatusBadRequest, errCreate.Error())
-		return
-	}
-
-	RespondWithJSON(w, http.StatusCreated, author)
-}
-
-func (c authorController) updateAuthor(w http.ResponseWriter, r *http.Request) {
-	defer HandlePanicAndRecovery(w)
-
-	// Get variables from request url
-	variables := mux.Vars(r)
-
-	// Get ID parameter
-	key := variables["id"]
-
-	// Check ID Parameter is valid
-	updateId, errParse := uuid.FromString(key)
-	if errParse != nil {
-		fmt.Println(errParse.Error())
-		RespondWithError(w, http.StatusBadRequest, errParse.Error())
-		return
-	}
-
-	// Get update dto from request body
-	var authorUpdateDto AuthorUpdateDto
-	errDecode := json.NewDecoder(r.Body).Decode(&authorUpdateDto)
-	if errDecode != nil {
-		fmt.Println(errDecode.Error())
-		RespondWithError(w, http.StatusBadRequest, errDecode.Error())
-		return
-	}
-
-	// Update on the Store
-	author, errUpdate := c.authorService.UpdateAuthor(updateId, authorUpdateDto)
-	if errUpdate != nil {
-		fmt.Println(errUpdate.Error())
-		RespondWithError(w, http.StatusBadRequest, errUpdate.Error())
-		return
-	}
-
-	RespondWithJSON(w, http.StatusOK, author)
-}
-
-func (c authorController) deleteAuthor(w http.ResponseWriter, r *http.Request) {
-	defer HandlePanicAndRecovery(w)
+	defer HandlePanicAndRecovery(w, c.logger)
 
 	// Get variables from request url
 	variables := mux.Vars(r)
@@ -145,18 +60,106 @@ func (c authorController) deleteAuthor(w http.ResponseWriter, r *http.Request) {
 	// Check ID Parameter is valid
 	searchId, errParse := uuid.FromString(key)
 	if errParse != nil {
-		fmt.Println(errParse.Error())
-		RespondWithError(w, http.StatusBadRequest, errParse.Error())
+		c.logger.Warning("Invalid ID; " + errParse.Error())
+		RespondErrorWithMessage(w, "Invalid ID")
+		return
+	}
+
+	// Get from on the Store
+	author, errResult := c.authorService.GetAuthorById(searchId)
+	if errResult != nil {
+		c.logger.Warning(errResult.Error())
+		RespondErrorWithMessage(w, errResult.Error())
+		return
+	}
+
+	RespondOkWithData(w, author)
+}
+
+func (c authorController) createAuthor(w http.ResponseWriter, r *http.Request) {
+	defer HandlePanicAndRecovery(w, c.logger)
+
+	// Get create dto from request body
+	var authorCreateDto AuthorCreateDto
+	errDecode := json.NewDecoder(r.Body).Decode(&authorCreateDto)
+	if errDecode != nil {
+		c.logger.Warning(errDecode.Error())
+		RespondErrorWithMessage(w, errDecode.Error())
+		return
+	}
+
+	// Create on the store
+	author, errCreate := c.authorService.CreateAuthor(authorCreateDto)
+	if errCreate != nil {
+		c.logger.Warning(errCreate.Error())
+		RespondErrorWithMessage(w, errCreate.Error())
+		return
+	}
+
+	RespondCreatedWithData(w, author)
+}
+
+func (c authorController) updateAuthor(w http.ResponseWriter, r *http.Request) {
+	defer HandlePanicAndRecovery(w, c.logger)
+
+	// Get variables from request url
+	variables := mux.Vars(r)
+
+	// Get ID parameter
+	key := variables["id"]
+
+	// Check ID Parameter is valid
+	updateId, errParse := uuid.FromString(key)
+	if errParse != nil {
+		c.logger.Warning("Invalid ID, " + errParse.Error())
+		RespondErrorWithMessage(w, "Invalid ID")
+		return
+	}
+
+	// Get update dto from request body
+	var authorUpdateDto AuthorUpdateDto
+	errDecode := json.NewDecoder(r.Body).Decode(&authorUpdateDto)
+	if errDecode != nil {
+		c.logger.Warning(errDecode.Error())
+		RespondErrorWithMessage(w, errDecode.Error())
+		return
+	}
+
+	// Update on the Store
+	author, errUpdate := c.authorService.UpdateAuthor(updateId, authorUpdateDto)
+	if errUpdate != nil {
+		c.logger.Warning(errUpdate.Error())
+		RespondErrorWithMessage(w, errUpdate.Error())
+		return
+	}
+
+	RespondOkWithData(w, author)
+}
+
+func (c authorController) deleteAuthor(w http.ResponseWriter, r *http.Request) {
+	defer HandlePanicAndRecovery(w, c.logger)
+
+	// Get variables from request url
+	variables := mux.Vars(r)
+
+	// Get ID parameter
+	key := variables["id"]
+
+	// Check ID Parameter is valid
+	searchId, errParse := uuid.FromString(key)
+	if errParse != nil {
+		c.logger.Warning("Invalid ID, " + errParse.Error())
+		RespondErrorWithMessage(w, "Invalid ID")
 		return
 	}
 
 	// Delete on the Store
 	errDelete := c.authorService.DeleteAuthor(searchId)
 	if errDelete != nil {
-		fmt.Println(errDelete.Error())
-		RespondWithError(w, http.StatusBadRequest, errDelete.Error())
+		c.logger.Warning(errDelete.Error())
+		RespondErrorWithMessage(w, errDelete.Error())
 		return
 	}
 
-	RespondWithJSON(w, http.StatusOK, "Delete operation is successfully completed")
+	RespondOkWithData(w, fmt.Sprintf("%s record successfully deleted", key))
 }

@@ -46,44 +46,51 @@ func (aas *authorAppService) GetAuthorList() ([]AuthorDto, error) {
 
 func (aas *authorAppService) GetAuthorById(id guid.UUID) (AuthorDto, error) {
 
-	product, err := aas.dal.AuthorRepository().GetById(id)
+	author, err := aas.dal.AuthorRepository().GetById(id)
 	if err != nil {
 		return AuthorDto{}, err
 	}
 
-	return entityToDto(product), nil
+	return entityToDto(author), nil
 }
 
 func (aas *authorAppService) CreateAuthor(input AuthorCreateDto) (AuthorDto, error) {
 
-	createdProduct := Author{
+	created := Author{
 		Name: input.Name,
 	}
 
-	err := aas.dal.AuthorRepository().Add(&createdProduct)
+	err := aas.dal.AuthorRepository().Add(&created)
 	if err != nil {
 		return AuthorDto{}, err
 	}
 
-	return entityToDto(createdProduct), nil
+	return entityToDto(created), nil
 }
 
 func (aas *authorAppService) UpdateAuthor(id guid.UUID, input AuthorUpdateDto) (AuthorDto, error) {
 
-	updated := Author{
-		//BaseEntityWithSoftDeletion: BaseEntityWithSoftDeletion{ID: id},
-		Name: input.Name,
+	author, errFind := aas.dal.AuthorRepository().GetById(id)
+	if errFind != nil {
+		return AuthorDto{}, errFind
 	}
 
-	err := aas.dal.AuthorRepository().Update(&updated)
-	if err != nil {
-		return AuthorDto{}, err
+	author.Name = input.Name
+
+	errUpdate := aas.dal.AuthorRepository().Update(&author)
+	if errUpdate != nil {
+		return AuthorDto{}, errUpdate
 	}
 
-	return entityToDto(updated), nil
+	return entityToDto(author), nil
 }
 
 func (aas *authorAppService) DeleteAuthor(id guid.UUID) error {
+
+	_, errFind := aas.dal.AuthorRepository().GetById(id)
+	if errFind != nil {
+		return errFind
+	}
 
 	err := aas.dal.AuthorRepository().Delete(id)
 	if err != nil {
@@ -95,7 +102,7 @@ func (aas *authorAppService) DeleteAuthor(id guid.UUID) error {
 
 func entityToDto(e Author) AuthorDto {
 	return AuthorDto{
-		FullAuditDto: helpers.MapFullAuditEntityToFullAuditDto(e.FullAuditEntity),
-		Name:         e.Name,
+		Base: helpers.MapBaseEntityToBaseDto(e.Entity),
+		Name: e.Name,
 	}
 }
