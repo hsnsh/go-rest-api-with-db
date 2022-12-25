@@ -1,28 +1,33 @@
 package repositories
 
 import (
+	guid "github.com/satori/go.uuid"
 	. "go-rest-api-with-db/internal/domain"
 	"gorm.io/gorm"
 )
 
-type IBookRepository interface {
-	GetList() ([]Book, error)
-	GetById(id uint) (Book, error)
-	Add(input *Book) error
-	Update(input *Book) error
-	Delete(id uint) error
+type IAuthorRepository interface {
+	GetList() ([]Author, error)
+	GetById(id guid.UUID) (Author, error)
+	Add(input *Author) error
+	Update(input *Author) error
+	Delete(id guid.UUID) error
 }
 
-type bookRepository struct {
+type authorRepository struct {
 	db *gorm.DB
 }
 
-func (p *bookRepository) GetList() ([]Book, error) {
+func NewAuthorRepository(db *gorm.DB) IAuthorRepository {
+	return &authorRepository{db: db}
+}
 
-	var entities []Book
+func (ar *authorRepository) GetList() ([]Author, error) {
+
+	var entities []Author
 
 	// Get all records
-	result := p.db.Find(&entities)
+	result := ar.db.Find(&entities)
 	// SELECT * FROM users;
 
 	//result.RowsAffected // returns found records count, equals `len(users)`
@@ -33,26 +38,26 @@ func (p *bookRepository) GetList() ([]Book, error) {
 	return entities, nil
 }
 
-func (p *bookRepository) GetById(id uint) (Book, error) {
+func (ar *authorRepository) GetById(id guid.UUID) (Author, error) {
 
-	var entity Book
+	var entity Author
 
-	result := p.db.First(&entity, id)
+	result := ar.db.First(&entity, id)
 	// SELECT * FROM users WHERE id = 10;
 
 	//result :=p.db.First(&entity, "id = ?", "1b74413f-f3b8-409f-ac47-e8c062e3472a")
 	// SELECT * FROM users WHERE id = "1b74413f-f3b8-409f-ac47-e8c062e3472a";
 
 	if result.Error != nil {
-		return Book{}, result.Error
+		return Author{}, result.Error
 	}
 
 	return entity, nil
 }
 
-func (p *bookRepository) Add(input *Book) error {
+func (ar *authorRepository) Add(input *Author) error {
 
-	result := p.db.Create(&input) // pass pointer of data to Create
+	result := ar.db.Create(&input) // pass pointer of data to Create
 
 	//user.ID             // returns inserted data's primary key
 	//result.Error        // returns error
@@ -65,9 +70,9 @@ func (p *bookRepository) Add(input *Book) error {
 	return nil
 }
 
-func (p *bookRepository) Update(input *Book) error {
+func (ar *authorRepository) Update(input *Author) error {
 
-	result := p.db.Save(&input)
+	result := ar.db.Save(&input)
 	// UPDATE users SET name='jinzhu 2', age=100, birthday='2016-01-01', updated_at = '2013-11-17 21:34:10' WHERE id=111;
 
 	if result.Error != nil {
@@ -77,16 +82,16 @@ func (p *bookRepository) Update(input *Book) error {
 	return nil
 }
 
-func (p *bookRepository) Delete(id uint) error {
+func (ar *authorRepository) Delete(id guid.UUID) error {
 
 	// If your model includes a gorm.DeletedAt field (which is included in gorm.Model), it will get soft delete ability automatically!
 	// When calling Delete, the record WON’T be removed from the database, but GORM will set the DeletedAt s value to the current time,
 	// and the data is not findable with normal Query methods anymore.
 
-	result := p.db.Delete(&Book{}, id)
+	//result := p.db.Delete(&Author{}, id)
 	// DELETE FROM users WHERE id = 10;
 
-	//result :=p.db.Delete(&entity{}, "id = ?", "1b74413f-f3b8-409f-ac47-e8c062e3472a")
+	result := ar.db.Delete(&Author{}, "id = ?", id.String())
 	// DELETE FROM users WHERE id = "1b74413f-f3b8-409f-ac47-e8c062e3472a";
 
 	if result.Error != nil {
@@ -102,8 +107,4 @@ func (p *bookRepository) Delete(id uint) error {
 	// DELETE FROM orders WHERE id=10;
 
 	return nil
-}
-
-func NewBookRepository(db *gorm.DB) IBookRepository {
-	return &bookRepository{db: db}
 }

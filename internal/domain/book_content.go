@@ -2,24 +2,22 @@ package domain
 
 import (
 	"errors"
-	uuid "github.com/satori/go.uuid"
+	guid "github.com/satori/go.uuid"
 	"gorm.io/gorm"
 )
 
-const BookContentTableName = "book_contents"
-
 type BookContent struct {
-	BookID  uuid.UUID `gorm:"primary_key;type:uuid;column:book_id;"`
+	BookID  guid.UUID `gorm:"primary_key;type:uuid;column:book_id;"`
 	Content string    `gorm:"column:currency;not null;"`
 }
 
-func (*BookContent) TableName() string {
-	return BookContentTableName
+func (bc *BookContent) TableName() string {
+	return "book_contents"
 }
 
-func (u *BookContent) BeforeSave(tx *gorm.DB) (err error) {
-	if u.BookID == uuid.Nil {
-		err = errors.New(u.BookID.String() + " invalid BookID")
+func (bc *BookContent) BeforeSave(tx *gorm.DB) (err error) {
+	if bc.BookID == guid.Nil {
+		err = errors.New(bc.BookID.String() + " invalid BookID")
 	}
 	return err
 }

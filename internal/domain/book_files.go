@@ -2,27 +2,25 @@ package domain
 
 import (
 	"errors"
-	uuid "github.com/satori/go.uuid"
+	guid "github.com/satori/go.uuid"
 	"gorm.io/gorm"
 )
 
-const BookFileTableName = "book_files"
-
 type BookFile struct {
-	BookID       uuid.UUID `gorm:"primary_key;type:uuid;column:book_id;"`
+	BookID       guid.UUID `gorm:"primary_key;type:uuid;column:book_id;"`
 	FilePath     string    `gorm:"column:file_path;"`
 	OrderNumber  uint8     `gorm:"column:order_number;not null;default:0"`
 	DocumentType uint8     `gorm:"column:document_type;not null;"`
 	// TODO: Enum DocumentType => FullImage, ThumbImage, PDF ...
 }
 
-func (*BookFile) TableName() string {
-	return BookFileTableName
+func (bf *BookFile) TableName() string {
+	return "book_files"
 }
 
-func (u *BookFile) BeforeSave(tx *gorm.DB) (err error) {
-	if u.BookID == uuid.Nil {
-		err = errors.New(u.BookID.String() + " invalid BookID")
+func (bf *BookFile) BeforeSave(tx *gorm.DB) (err error) {
+	if bf.BookID == guid.Nil {
+		err = errors.New(bf.BookID.String() + " invalid BookID")
 	}
 	return err
 }

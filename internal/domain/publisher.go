@@ -1,16 +1,14 @@
 package domain
 
 import (
-	"go-rest-api-with-db/internal/domain/base"
+	. "go-rest-api-with-db/internal/domain/base"
 )
 
-const PublisherTableName = "publishers"
-
 type Publisher struct {
-	base.FullAuditEntity
+	FullAuditEntity
 	Title string `gorm:"column:title;not null;size:250;"`
 }
 
-func (*Publisher) TableName() string {
-	return PublisherTableName
+func (p *Publisher) TableName() string {
+	return "publishers"
 }

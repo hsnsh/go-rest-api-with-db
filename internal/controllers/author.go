@@ -12,38 +12,40 @@ import (
 	"net/http"
 )
 
-type productController struct {
-	logger         logger.IFileLogger
-	router         *mux.Router
-	productService IProductAppService
+const baseUrl = "/api/authors"
+
+type authorController struct {
+	logger        logger.IFileLogger
+	router        *mux.Router
+	authorService IAuthorAppService
 }
 
-func RegisterProductController(appLogger logger.IFileLogger, appRouter *mux.Router, productAppService IProductAppService) {
-	productController{logger: appLogger, router: appRouter, productService: productAppService}.initializeRoutes()
+func RegisterAuthorController(appLogger logger.IFileLogger, appRouter *mux.Router, authorAppService IAuthorAppService) {
+	authorController{logger: appLogger, router: appRouter, authorService: authorAppService}.initializeRoutes()
 }
 
-func (c productController) initializeRoutes() {
-	c.router.HandleFunc("/api/products", c.getAllProducts).Methods("GET")
-	c.router.HandleFunc("/api/products/{id}", c.getProductById).Methods("GET")
-	c.router.HandleFunc("/api/products", c.createProduct).Methods("POST")
-	c.router.HandleFunc("/api/products/{id}", c.updateProduct).Methods("PUT")
-	c.router.HandleFunc("/api/products/{id}", c.deleteProduct).Methods("DELETE")
+func (c authorController) initializeRoutes() {
+	c.router.HandleFunc(baseUrl, c.getAllAuthors).Methods("GET")
+	c.router.HandleFunc(baseUrl+"/{id}", c.getAuthorById).Methods("GET")
+	c.router.HandleFunc(baseUrl, c.createAuthor).Methods("POST")
+	c.router.HandleFunc(baseUrl+"/{id}", c.updateAuthor).Methods("PUT")
+	c.router.HandleFunc(baseUrl+"/{id}", c.deleteAuthor).Methods("DELETE")
 }
 
-func (c productController) getAllProducts(w http.ResponseWriter, r *http.Request) {
+func (c authorController) getAllAuthors(w http.ResponseWriter, r *http.Request) {
 	defer HandlePanicAndRecovery(w)
 
-	products, errResult := c.productService.GetProductList()
+	authors, errResult := c.authorService.GetAuthorList()
 	if errResult != nil {
 		fmt.Println(errResult.Error())
 		RespondWithError(w, http.StatusInternalServerError, errResult.Error())
 		return
 	}
 
-	RespondWithJSON(w, http.StatusOK, products)
+	RespondWithJSON(w, http.StatusOK, authors)
 }
 
-func (c productController) getProductById(w http.ResponseWriter, r *http.Request) {
+func (c authorController) getAuthorById(w http.ResponseWriter, r *http.Request) {
 	defer HandlePanicAndRecovery(w)
 
 	// Get variables from request url
@@ -56,27 +58,27 @@ func (c productController) getProductById(w http.ResponseWriter, r *http.Request
 	searchId, err := uuid.FromString(key)
 	if err != nil {
 		fmt.Println(err.Error())
-		RespondWithError(w, http.StatusBadRequest, "Invalid product ID")
+		RespondWithError(w, http.StatusBadRequest, "Invalid Author ID")
 		return
 	}
 
 	// Get from on the Store
-	product, errResult := c.productService.GetProductById(searchId)
+	author, errResult := c.authorService.GetAuthorById(searchId)
 	if errResult != nil {
 		fmt.Println(errResult.Error())
 		RespondWithError(w, http.StatusNotFound, errResult.Error())
 		return
 	}
 
-	RespondWithJSON(w, http.StatusOK, product)
+	RespondWithJSON(w, http.StatusOK, author)
 }
 
-func (c productController) createProduct(w http.ResponseWriter, r *http.Request) {
+func (c authorController) createAuthor(w http.ResponseWriter, r *http.Request) {
 	defer HandlePanicAndRecovery(w)
 
 	// Get create dto from request body
-	var productCreateDto ProductCreateDto
-	errDecode := json.NewDecoder(r.Body).Decode(&productCreateDto)
+	var authorCreateDto AuthorCreateDto
+	errDecode := json.NewDecoder(r.Body).Decode(&authorCreateDto)
 	if errDecode != nil {
 		fmt.Println(errDecode.Error())
 		RespondWithError(w, http.StatusBadRequest, errDecode.Error())
@@ -84,17 +86,17 @@ func (c productController) createProduct(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Create on the store
-	product, errCreate := c.productService.CreateProduct(productCreateDto)
+	author, errCreate := c.authorService.CreateAuthor(authorCreateDto)
 	if errCreate != nil {
 		fmt.Println(errCreate.Error())
 		RespondWithError(w, http.StatusBadRequest, errCreate.Error())
 		return
 	}
 
-	RespondWithJSON(w, http.StatusCreated, product)
+	RespondWithJSON(w, http.StatusCreated, author)
 }
 
-func (c productController) updateProduct(w http.ResponseWriter, r *http.Request) {
+func (c authorController) updateAuthor(w http.ResponseWriter, r *http.Request) {
 	defer HandlePanicAndRecovery(w)
 
 	// Get variables from request url
@@ -112,8 +114,8 @@ func (c productController) updateProduct(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Get update dto from request body
-	var productUpdateDto ProductUpdateDto
-	errDecode := json.NewDecoder(r.Body).Decode(&productUpdateDto)
+	var authorUpdateDto AuthorUpdateDto
+	errDecode := json.NewDecoder(r.Body).Decode(&authorUpdateDto)
 	if errDecode != nil {
 		fmt.Println(errDecode.Error())
 		RespondWithError(w, http.StatusBadRequest, errDecode.Error())
@@ -121,17 +123,17 @@ func (c productController) updateProduct(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Update on the Store
-	product, errUpdate := c.productService.UpdateProduct(updateId, productUpdateDto)
+	author, errUpdate := c.authorService.UpdateAuthor(updateId, authorUpdateDto)
 	if errUpdate != nil {
 		fmt.Println(errUpdate.Error())
 		RespondWithError(w, http.StatusBadRequest, errUpdate.Error())
 		return
 	}
 
-	RespondWithJSON(w, http.StatusOK, product)
+	RespondWithJSON(w, http.StatusOK, author)
 }
 
-func (c productController) deleteProduct(w http.ResponseWriter, r *http.Request) {
+func (c authorController) deleteAuthor(w http.ResponseWriter, r *http.Request) {
 	defer HandlePanicAndRecovery(w)
 
 	// Get variables from request url
@@ -149,7 +151,7 @@ func (c productController) deleteProduct(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Delete on the Store
-	errDelete := c.productService.DeleteProduct(searchId)
+	errDelete := c.authorService.DeleteAuthor(searchId)
 	if errDelete != nil {
 		fmt.Println(errDelete.Error())
 		RespondWithError(w, http.StatusBadRequest, errDelete.Error())

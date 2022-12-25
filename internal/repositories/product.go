@@ -20,6 +20,22 @@ type productRepository struct {
 	productStore map[string]*Product
 }
 
+func NewProductRepository() IProductRepository {
+
+	instance := productRepository{productStore: map[string]*Product{}}
+
+	// insert fake data
+	for i := 0; i < 10; i++ {
+		id := uuid.NewV4()
+		instance.productStore[id.String()] = &Product{
+			Name:  "Product" + strconv.Itoa(i),
+			Price: 39.99 + float32(i),
+		}
+	}
+
+	return &instance
+}
+
 func (p *productRepository) GetList() ([]Product, error) {
 
 	var products []Product
@@ -101,20 +117,4 @@ func (p *productRepository) Delete(id string) error {
 	delete(p.productStore, id)
 
 	return nil
-}
-
-func NewProductRepository() IProductRepository {
-
-	instance := productRepository{productStore: map[string]*Product{}}
-
-	// insert fake data
-	for i := 0; i < 10; i++ {
-		id := uuid.NewV4()
-		instance.productStore[id.String()] = &Product{
-			Name:  "Product" + strconv.Itoa(i),
-			Price: 39.99 + float32(i),
-		}
-	}
-
-	return &instance
 }

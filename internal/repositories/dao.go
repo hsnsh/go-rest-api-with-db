@@ -2,23 +2,18 @@ package repositories
 
 import "gorm.io/gorm"
 
-type DAO interface {
-	NewBookRepository() IBookRepository
-	NewProductRepository() IProductRepository
+type IDataAccessLayer interface {
+	AuthorRepository() IAuthorRepository
 }
 
-type dao struct {
+type dataAccessLayer struct {
 	db *gorm.DB
 }
 
-func (d *dao) NewBookRepository() IBookRepository {
-	return NewBookRepository(d.db)
+func NewDataAccessLayer(db *gorm.DB) IDataAccessLayer {
+	return &dataAccessLayer{db: db}
 }
 
-func (d *dao) NewProductRepository() IProductRepository {
-	return &productRepository{}
-}
-
-func NewDAO(db *gorm.DB) DAO {
-	return &dao{db: db}
+func (dal *dataAccessLayer) AuthorRepository() IAuthorRepository {
+	return NewAuthorRepository(dal.db)
 }
