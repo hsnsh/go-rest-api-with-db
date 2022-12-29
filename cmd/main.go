@@ -5,13 +5,17 @@ import (
 	"github.com/HsnCorp/go-hsn-library/logger"
 	"github.com/joho/godotenv"
 	"go-rest-api-with-db/internal/app"
+	"go-rest-api-with-db/internal/config"
 	"go-rest-api-with-db/internal/domain"
 	"gorm.io/gorm"
 	"os"
 	"strings"
 )
 
-var appLogger logger.IFileLogger
+var (
+	appLogger   logger.IFileLogger
+	appSettings config.AppSettings
+)
 
 func init() {
 
@@ -33,7 +37,19 @@ func init() {
 		appLogger.Fatal("Error loading .env." + env + " file")
 	}
 
-	if os.Getenv("APP_ENV") != "prod" {
+	appSettings.AppTitle = os.Getenv("APP_TITLE")
+	appSettings.AppVersion = os.Getenv("APP_VERSION")
+	appSettings.AppEnvironment = os.Getenv("APP_ENV")
+	appSettings.AppHost = os.Getenv("APP_HOST_ADDRESS")
+	appSettings.AppPort = os.Getenv("APP_HOST_PORT")
+	appSettings.DbHost = os.Getenv("APP_DB_HOST")
+	appSettings.DbPort = os.Getenv("APP_DB_PORT")
+	appSettings.DbPass = os.Getenv("APP_DB_PASS")
+	appSettings.DbUser = os.Getenv("APP_DB_USER")
+	appSettings.DbName = os.Getenv("APP_DB_NAME")
+	appSettings.DbSslMode = os.Getenv("APP_DB_SSLM")
+
+	if appSettings.AppEnvironment == "test" {
 		// Show application environment variables
 		for _, e := range os.Environ() {
 			pair := strings.SplitN(e, "=", 2)
@@ -45,15 +61,14 @@ func init() {
 }
 
 func main() {
-	a := app.New(appLogger)
-	a.Initialize(os.Getenv("APP_DB_CONNECTION"))
+	a := app.New(appLogger, &appSettings)
 
 	// Seed Sample Data
-	if os.Getenv("APP_ENV") != "prod" {
+	if appSettings.AppEnvironment != "prod" {
 		//seedData(a.GetDB())
 	}
 
-	a.Run(fmt.Sprintf("%s:%s", os.Getenv("APP_HOST_ADDRESS"), os.Getenv("APP_HOST_PORT")))
+	a.Run()
 }
 
 func seedData(appDB *gorm.DB) {

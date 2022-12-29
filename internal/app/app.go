@@ -1,62 +1,42 @@
 package app
 
 import (
+	"fmt"
 	. "github.com/HsnCorp/go-hsn-library/logger"
+	"github.com/gorilla/mux"
+	//_ "github.com/lib/pq"
+	"go-rest-api-with-db/internal/config"
 	. "go-rest-api-with-db/internal/controllers"
 	"go-rest-api-with-db/internal/domain"
 	r "go-rest-api-with-db/internal/repositories"
 	s "go-rest-api-with-db/internal/services"
-	"gorm.io/driver/postgres"
+	"go-rest-api-with-db/internal/storage"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
-	"log"
-	"os"
-	"time"
-
 	"net/http"
-	// tom: go get required
-	"github.com/gorilla/mux"
-	_ "github.com/lib/pq"
 )
 
 type app struct {
-	appRouter *mux.Router
-	appDB     *gorm.DB
-	appLogger IFileLogger
+	appRouter   *mux.Router
+	appDB       *gorm.DB
+	appSettings *config.AppSettings
+	appLogger   IFileLogger
 }
 
-func New(fileLogger IFileLogger) *app {
-	return &app{appLogger: fileLogger}
+func New(fileLogger IFileLogger, appSettings *config.AppSettings) *app {
+	instance := app{appLogger: fileLogger, appSettings: appSettings}
+	instance.initialize()
+	return &instance
 }
 
 // Public functions
-
-func (a *app) Initialize(connectionString string) {
-
-	a.appLogger.Info("Go RestAPI initializing...")
-
-	// Initialize Database
-	a.initializeDatabase(connectionString)
-
-	// Register Repositories
-	dao := r.NewDataAccessLayer(a.appDB)
-
-	// Register Services
-	authorAppService := s.NewAuthorAppService(a.appLogger, dao)
-
-	// Initialize Routes
-	a.appRouter = mux.NewRouter().StrictSlash(true)
-	if os.Getenv("APP_ENV") != "prod" {
-		a.appRouter.HandleFunc("/", a.handleIndex).Methods("GET")
-	}
-	RegisterAuthorController(a.appLogger, a.appRouter, authorAppService)
-}
 
 func (a *app) GetDB() *gorm.DB {
 	return a.appDB
 }
 
-func (a *app) Run(addr string) {
+func (a *app) Run() {
+	addr := fmt.Sprintf("%s:%s", a.appSettings.AppHost, a.appSettings.AppPort)
+
 	a.appLogger.Info("Go RestAPI listening ... [ " + addr + " ]")
 	if err := http.ListenAndServe(addr, a.appRouter); err != nil {
 		a.appLogger.Fatal(err.Error())
@@ -66,32 +46,47 @@ func (a *app) Run(addr string) {
 }
 
 // Private Functions
+func (a *app) initialize() {
 
-func (a *app) initializeDatabase(dsn string) {
+	a.appLogger.Info(a.appSettings.AppTitle + " initializing... [ v" + a.appSettings.AppVersion + " ]")
 
-	gormConfig := gorm.Config{
-		NowFunc: func() time.Time {
-			return time.Now().UTC()
-		},
-		Logger: logger.New(
-			log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-			logger.Config{
-				SlowThreshold:             time.Second,   // Slow SQL threshold
-				LogLevel:                  logger.Silent, // Log level
-				IgnoreRecordNotFoundError: true,          // Ignore ErrRecordNotFound error for logger
-				Colorful:                  false,         // Disable color
-			},
-		),
+	// Initialize Database
+	a.initializeDatabase()
+
+	// Register Repositories
+	dao := r.NewDataAccessLayer(a.appDB)
+
+	// Register Services
+	authorAppService := s.NewAuthorAppService(a.appLogger, dao)
+
+	// Initialize Routes
+	a.appRouter = mux.NewRouter().StrictSlash(true)
+	if a.appSettings.AppEnvironment != "prod" {
+		a.appRouter.HandleFunc("/", a.handleIndex).Methods("GET")
+	}
+	RegisterAuthorController(a.appLogger, a.appRouter, authorAppService)
+}
+
+func (a *app) initializeDatabase() {
+
+	config := storage.PostgresConfig{
+		Host:     a.appSettings.DbHost,
+		Port:     a.appSettings.DbPort,
+		Password: a.appSettings.DbPass,
+		User:     a.appSettings.DbUser,
+		DbName:   a.appSettings.DbName,
+		SslMode:  a.appSettings.DbSslMode,
 	}
 
-	//dsn = "data/test.db" // "file::memory:?cache=shared"
-	//db, conErr := gorm.Open(sqlite.Open(dsn), &gormConfig)
-
-	db, conErr := gorm.Open(postgres.Open(dsn), &gormConfig)
+	db, conErr := storage.PostgresNewConnectionWithConfig(&config)
 	if conErr != nil {
 		a.appLogger.Fatal(conErr.Error())
 	} else {
-		a.appLogger.Info("Successfully connected to the database")
+		a.appLogger.Info(fmt.Sprintf("Successfully connected to the database. [ %s on %s:%s ]",
+			a.appSettings.DbName,
+			a.appSettings.DbHost,
+			a.appSettings.DbPort,
+		))
 	}
 
 	// Migrate the schema
@@ -106,7 +101,7 @@ func (a *app) initializeDatabase(dsn string) {
 	if err := db.AutoMigrate(models...); err != nil {
 		a.appLogger.Fatal(err.Error())
 	} else {
-		a.appLogger.Info("AutoMigrate completed")
+		a.appLogger.Info("AutoMigrate completed.")
 	}
 
 	a.appDB = db
