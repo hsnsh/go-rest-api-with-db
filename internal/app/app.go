@@ -57,6 +57,7 @@ func (a *app) initialize() {
 	dao := r.NewDataAccessLayer(a.appDB)
 
 	// Register Services
+	//s.NewAuthorService(s.WithAuthorRepository(dao.AuthorRepository()))
 	authorAppService := s.NewAuthorAppService(a.appLogger, dao)
 
 	// Initialize Routes

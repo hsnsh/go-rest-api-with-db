@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strconv"
+	"strings"
 )
 
 // NilSliceToEmptySlice recursively sets nil slices to empty slices
@@ -80,4 +82,27 @@ func PrintJSON(payload interface{}) {
 	newPayload := NilSliceToEmptySlice(payload)
 	response, _ := json.Marshal(newPayload)
 	fmt.Printf("%s\n", response)
+}
+
+// GetGormTagDetails Entity model tag details
+func GetGormTagDetails(model interface{}, fieldName string) (isRequired bool, maxLength int) {
+	if field, exist := reflect.TypeOf(model).FieldByName(fieldName); exist {
+		rules := strings.Split(field.Tag.Get("gorm"), ";")
+		for _, r := range rules {
+			if len(r) > 0 {
+				//fmt.Printf("Rule -> %s\n", r)
+				if r == "not null" || r == "primary_key" {
+					isRequired = true
+				}
+				if strings.Contains(r, "size") {
+					maxLength, _ = strconv.Atoi(string(strings.Split(r, ":")[1]))
+				}
+			}
+		}
+	} else {
+		isRequired = false
+		maxLength = -1
+	}
+
+	return isRequired, maxLength
 }

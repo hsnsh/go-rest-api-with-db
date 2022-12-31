@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+bin/
 
 # Test binary, built with `go test -c`
 *.test
@@ -13,9 +14,15 @@
 *.out
 
 # Dependency directories (remove the comment below to include it)
-# vendor/
+vendor/
 
-.idea
-.vscode
-logs
-data
+# IDE Settings
+.idea/
+.vscode/
+
+# Temporary Data
+data/
+.data/
+tmp/
+logs/
+

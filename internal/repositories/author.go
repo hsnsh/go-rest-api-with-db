@@ -1,9 +1,16 @@
 package repositories
 
 import (
+	"errors"
 	guid "github.com/satori/go.uuid"
 	. "go-rest-api-with-db/internal/domain"
 	"gorm.io/gorm"
+)
+
+var (
+	ErrAuthorNotFound     = errors.New("author was not found")
+	ErrAuthorAlreadyExist = errors.New("author already exist")
+	ErrAuthorCreation     = errors.New("author creation failed")
 )
 
 type IAuthorRepository interface {
@@ -42,10 +49,10 @@ func (ar *authorRepository) GetById(id guid.UUID) (Author, error) {
 
 	var entity Author
 
-	result := ar.db.First(&entity, id)
+	//result := ar.db.First(&entity, id)
 	// SELECT * FROM users WHERE id = 10;
 
-	//result :=p.db.First(&entity, "id = ?", "1b74413f-f3b8-409f-ac47-e8c062e3472a")
+	result := ar.db.First(&entity, "id = ?", id.String())
 	// SELECT * FROM users WHERE id = "1b74413f-f3b8-409f-ac47-e8c062e3472a";
 
 	if result.Error != nil {
@@ -80,6 +87,13 @@ func (ar *authorRepository) Update(input *Author) error {
 	}
 
 	return nil
+
+	//var updateAuthor Author
+	//result := ar.db.Model(&updateAuthor).Where("id = ?", input.ID.String()).Updates(input)
+	//if result.RowsAffected == 0 {
+	//	return &Author{}, errors.New("payment data not update")
+	//}
+	//return updateAuthor, nil
 }
 
 func (ar *authorRepository) Delete(id guid.UUID) error {
@@ -98,6 +112,10 @@ func (ar *authorRepository) Delete(id guid.UUID) error {
 		return result.Error
 	}
 
+	if result.RowsAffected == 0 {
+		return errors.New("no affected rows")
+	}
+
 	// Find soft deleted records
 	//db.Unscoped().Where("age = 20").Find(&users)
 	// SELECT * FROM users WHERE age = 20;
@@ -107,4 +125,11 @@ func (ar *authorRepository) Delete(id guid.UUID) error {
 	// DELETE FROM orders WHERE id=10;
 
 	return nil
+
+	//var deletedPayment models.Payment
+	//result := ar.db.Where("id = ?", id).Delete(&deletedPayment)
+	//if result.RowsAffected == 0 {
+	//	return 0, errors.New("payment data not update")
+	//}
+	//return result.RowsAffected, nil
 }
